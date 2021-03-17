@@ -12,6 +12,8 @@
 #define PORT 8080    // PORT, change this to correct STUN port
 #define MAXLINE 1024 // MAX amount of bytes in datagram packet, change according to RFC
 
+// TODO: make this one run with threads and put it in a while loop
+
 class STUNServer
 {
 private:
@@ -47,7 +49,6 @@ public:
         }
     }
 
-    // TODO: put it in while loop, make threads that handle each client
     void run()
     {
         std::cout << "Server is running. Waiting for STUN requests..." << std::endl;
