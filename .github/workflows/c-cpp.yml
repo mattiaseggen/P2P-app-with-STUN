@@ -14,6 +14,4 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Change directory
-      run: cd STUN-server
-    - name: make
-      run: make
+      run: cd STUN-server && make
