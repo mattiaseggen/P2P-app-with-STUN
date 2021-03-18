@@ -1,11 +1,19 @@
-image: ubuntu:latest
+name: C/C++ CI
 
-stages:
-  - build 
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
-install:
-  stage: build
-  script:
-    - sudo apt-get install make
-    - cd STUN-server
-    - make
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Change directory
+      run: cd STUN-server
+    - name: make
+      run: make
