@@ -1,4 +1,4 @@
-#include "../inc/STUNOperations.hpp"
+#include "STUNOperations.hpp"
 #include <iostream> // temporary for testing
 #include <math.h>
 #include <netinet/in.h>
@@ -247,16 +247,17 @@ void handleSTUNMessage(char *inputBuffer, char *responseBuffer, struct sockaddr_
     if ((unsigned)inputBuffer[0] << 8 | inputBuffer[1] == BINDING_REQUEST)
     {
         std::cout << "This is a binding request!" << std::endl;
-        createBindingSuccessResponse(inputBuffer, responseBuffer, clientAddress);
-        /*
+        //createBindingSuccessResponse(inputBuffer, responseBuffer, clientAddress);
+        
         char errorReason[128];
         sprintf(errorReason, "This is test error");
+
         createBindingErrorResponse(inputBuffer, responseBuffer, errorReason);
         
         for(int i = 0; i < 156; i ++){
             std::cout << std::setfill('0') << std::setw(2) << std::hex << (0xff & (unsigned int)responseBuffer[i]);
         }
-        */
+        
 
     }
 }

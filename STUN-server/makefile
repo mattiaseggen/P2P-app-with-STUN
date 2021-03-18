@@ -3,11 +3,11 @@ SRC = ./src/
 STUNServer: STUNServer.o STUNOperations.o
 	g++ STUNServer.o STUNOperations.o -o STUNServer
 
-STUNServer.o: $(SRC)STUNServer.cpp
-	g++ -c $(SRC)STUNServer.cpp
+STUNServer.o: STUNServer.cpp
+	g++ -c STUNServer.cpp
 
-STUNOperations.o: $(SRC)STUNOperations.cpp
-	g++ -c $(SRC)STUNOperations.cpp
+STUNOperations.o: STUNOperations.cpp
+	g++ -c STUNOperations.cpp
 
 
 clean:

@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <iostream>
-#include "../inc/STUNOperations.hpp"
+#include "STUNOperations.hpp"
 
 #define PORT 8080    // PORT, change this to correct STUN port
 #define MAXLINE 1024 // MAX amount of bytes in datagram packet, change according to RFC
@@ -65,7 +65,7 @@ public:
             char response[156];
             handleSTUNMessage(buffer, response, clientAddress);
 
-            sendto(socketfd, (const char *)response, 32, MSG_CONFIRM, (const struct sockaddr *)&clientAddress, len);
+            sendto(socketfd, (const char *)response, 156, MSG_CONFIRM, (const struct sockaddr *)&clientAddress, len);
         
     }
 };
