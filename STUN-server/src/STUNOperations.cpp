@@ -4,6 +4,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <iomanip> 
+
 /**
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -44,9 +46,13 @@
 #define BINDING_SUCCESS_RESPONSE 0x0101
 #define BINDING_ERROR_RESPONSE 0x0111
 #define MAGIC_COOKIE 0x2112A442
-// TODO: Add other type, maybe indication
+
+#define XOR_MAPPED_ADDRESS 0x0020
+#define ERROR_CODE 0x0009
+
 #define MAGIC_COOKIE_OFFSET 4
 #define MAXLINE 1024 // MAX amount of bytes in datagram packet, change according to RFC
+
 
 int isStunMessage(unsigned char byte)
 {
@@ -121,15 +127,15 @@ void getClientIPv4(char *buffer, struct sockaddr_in clientAddress)
     buffer[3] = XOR_ip & 255;
 }
 
-void createBindingSuccessResponse(char *input, char *responseBuffer, struct sockaddr_in clientAddress)
-{ //Double check if this is the correct way for responseBuffer
+void createSTUNHeader(char *input, char *responseBuffer, short messageType, short length)
+{
     //Setting STUN messagetype:
-    responseBuffer[0] = BINDING_SUCCESS_RESPONSE >> 8;
-    responseBuffer[1] = BINDING_SUCCESS_RESPONSE & 255;
+    responseBuffer[0] = messageType >> 8;
+    responseBuffer[1] = messageType & 255;
 
     //Setting STUN messagelength:
-    responseBuffer[2] = 0;
-    responseBuffer[3] = 12;
+    responseBuffer[2] = length >> 8;
+    responseBuffer[3] = length & 255;
 
     //Setting STUN magic cookie
     responseBuffer[4] = 0x21;
@@ -142,14 +148,45 @@ void createBindingSuccessResponse(char *input, char *responseBuffer, struct sock
     {
         responseBuffer[i] = input[i];
     }
+}
 
-    //Add XOR-MAPPED-ADDRESS attribute
-    // setting attribute type
-    responseBuffer[20] = 0;
-    responseBuffer[21] = 0x20;
+void createAttributeHeader(char *responseBuffer, short attributeType, short length)
+{
+    // Setting attribute type
+    responseBuffer[20] = attributeType >> 8;
+    responseBuffer[21] = attributeType & 255;
+
     // setting attribute length
-    responseBuffer[22] = 0;
-    responseBuffer[23] = 8;
+    responseBuffer[22] = length >> 8;
+    responseBuffer[23] = length & 255;
+}
+
+void createErrorAttribute(char *responseBuffer, short error, char *reason)
+{
+    // reserved bits
+    responseBuffer[24] = 0;
+    responseBuffer[25] = 0;
+
+    short errorClass = error / 100;
+    responseBuffer[26] = (char)errorClass;
+
+    short errorNumb = error % 100;
+    responseBuffer[27] = (char)errorNumb;
+
+    // 128 because length of reason is always 128 characters
+    for (int i = 0; i < 128; i++)
+    {
+        responseBuffer[28 + i] = reason[i];
+    }
+}
+
+void createBindingSuccessResponse(char *input, char *responseBuffer, struct sockaddr_in clientAddress)
+{
+    // Creating stun header with binding success response message type
+    createSTUNHeader(input, responseBuffer, BINDING_SUCCESS_RESPONSE, 12);
+
+    // Add XOR-MAPPED-ADDRESS attribute
+    createAttributeHeader(responseBuffer, XOR_MAPPED_ADDRESS, 8);
     // setting attribute value
     responseBuffer[24] = 0;
     responseBuffer[25] = 0x01; //Ipv4 address
@@ -166,6 +203,15 @@ void createBindingSuccessResponse(char *input, char *responseBuffer, struct sock
         responseBuffer[i] = ip[i - 28];
     }
 }
+
+void createBindingErrorResponse(char *inputBuffer, char *responseBuffer, char *reason)
+{
+    // Creating stun header with binding error response message type
+    createSTUNHeader(inputBuffer, responseBuffer, BINDING_ERROR_RESPONSE, 136); 
+    createAttributeHeader(responseBuffer, ERROR_CODE, 132);                     
+    createErrorAttribute(responseBuffer, 400, reason);
+}
+
 
 void handleSTUNMessage(char *inputBuffer, char *responseBuffer, struct sockaddr_in clientAddress)
 {
@@ -202,5 +248,15 @@ void handleSTUNMessage(char *inputBuffer, char *responseBuffer, struct sockaddr_
     {
         std::cout << "This is a binding request!" << std::endl;
         createBindingSuccessResponse(inputBuffer, responseBuffer, clientAddress);
+        /*
+        char errorReason[128];
+        sprintf(errorReason, "This is test error");
+        createBindingErrorResponse(inputBuffer, responseBuffer, errorReason);
+        
+        for(int i = 0; i < 156; i ++){
+            std::cout << std::setfill('0') << std::setw(2) << std::hex << (0xff & (unsigned int)responseBuffer[i]);
+        }
+        */
+
     }
 }
