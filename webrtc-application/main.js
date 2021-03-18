@@ -1,3 +1,9 @@
+/*
+To run dev server, make sure to be in the webrtc-application folder, and run 'npm run dev'.
+If this is the first time running the project, 'npm install' also needs to be run.
+*/
+
+
 import "./style.css";
 
 import firebase from "firebase/app";
