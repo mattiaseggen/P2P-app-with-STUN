@@ -1,8 +1,7 @@
-image: ubuntu-latest
+image: ubuntu:latest
 
 stages:
   - build 
-
 
 install:
   stage: build
