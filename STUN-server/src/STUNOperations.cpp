@@ -1,10 +1,10 @@
-#include "STUNOperations.hpp"
+#include "../inc/STUNOperations.hpp"
 #include <iostream> // temporary for testing
 #include <math.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <iomanip> 
+#include <iomanip>
 
 /**
        0                   1                   2                   3
@@ -53,6 +53,11 @@
 #define MAGIC_COOKIE_OFFSET 4
 #define MAXLINE 1024 // MAX amount of bytes in datagram packet, change according to RFC
 
+static struct Error errorList[4] = {
+    {401, "This is not a STUN message. First two bits needs to be 0."},
+    {402, "The magic cookie is either missing or not correct. It is supposed to be 0x2112A442."},
+    {403, "The transaciton ID is either missing or not the correct value."},
+    {404, "The length is either missing or an invalid value."}};
 
 int isStunMessage(unsigned char byte)
 {
@@ -173,7 +178,7 @@ void createErrorAttribute(char *responseBuffer, short error, char *reason)
     short errorNumb = error % 100;
     responseBuffer[27] = (char)errorNumb;
 
-    // 128 because length of reason is always 128 characters
+    // 128 because length of the reasons we have defined is no longer than 128
     for (int i = 0; i < 128; i++)
     {
         responseBuffer[28 + i] = reason[i];
@@ -204,60 +209,63 @@ void createBindingSuccessResponse(char *input, char *responseBuffer, struct sock
     }
 }
 
-void createBindingErrorResponse(char *inputBuffer, char *responseBuffer, char *reason)
+void createBindingErrorResponse(char *inputBuffer, char *responseBuffer, struct Error error)
 {
     // Creating stun header with binding error response message type
-    createSTUNHeader(inputBuffer, responseBuffer, BINDING_ERROR_RESPONSE, 136); 
-    createAttributeHeader(responseBuffer, ERROR_CODE, 132);                     
-    createErrorAttribute(responseBuffer, 400, reason);
+    createSTUNHeader(inputBuffer, responseBuffer, BINDING_ERROR_RESPONSE, 136);
+    createAttributeHeader(responseBuffer, ERROR_CODE, 132);
+    createErrorAttribute(responseBuffer, error.errorCode, error.reason);
 }
 
-
-void handleSTUNMessage(char *inputBuffer, char *responseBuffer, struct sockaddr_in clientAddress)
+int validateSTUNMessage(char *inputBuffer, char *responseBuffer)
 {
     // Check if the datagram package really is a STUN message
     if (isStunMessage((unsigned char)inputBuffer[0]) == 0)
     {
-        // TODO: create STUN error response
         std::cout << "This is not a STUN message, two first bits are not zero!" << std::endl;
+        createBindingErrorResponse(inputBuffer, responseBuffer, errorList[0]);
+        return 0;
     }
-
     // Check if the datagram package contains magic cookie
-    if (containsMagicCookie(inputBuffer) == 0)
+    else if (containsMagicCookie(inputBuffer) == 0)
     {
-        // TODO: create STUN error response
         std::cout << "This is not a STUN message, missing magic cookie!" << std::endl;
+        createBindingErrorResponse(inputBuffer, responseBuffer, errorList[1]);
+        return 0;
     }
-
     // Check if the transaction id is within its limit
-    if (validTransactionID(inputBuffer) == 0)
+    else if (validTransactionID(inputBuffer) == 0)
     {
-        // TODO: create STUN error response
         std::cout << "This transactionID is not valid!" << std::endl;
+        createBindingErrorResponse(inputBuffer, responseBuffer, errorList[2]);
+        return 0;
     }
-
     // check if hte message length is valid
-    if (validMessageLength(inputBuffer) == 0)
+    else if (validMessageLength(inputBuffer) == 0)
     {
-        // TODO: create STUN error response
         std::cout << "This length is not valid!" << std::endl;
+        createBindingErrorResponse(inputBuffer, responseBuffer, errorList[3]);
+        return 0;
     }
 
-    //----------- handle message type -----------//
-    if ((unsigned)inputBuffer[0] << 8 | inputBuffer[1] == BINDING_REQUEST)
+    return 1;
+}
+
+void handleSTUNMessage(char *inputBuffer, char *responseBuffer, int *responseSize, struct sockaddr_in clientAddress)
+{
+
+    if (validateSTUNMessage(inputBuffer, responseBuffer) == 1)
     {
-        std::cout << "This is a binding request!" << std::endl;
-        //createBindingSuccessResponse(inputBuffer, responseBuffer, clientAddress);
-        
-        char errorReason[128];
-        sprintf(errorReason, "This is test error");
-
-        createBindingErrorResponse(inputBuffer, responseBuffer, errorReason);
-        
-        for(int i = 0; i < 156; i ++){
-            std::cout << std::setfill('0') << std::setw(2) << std::hex << (0xff & (unsigned int)responseBuffer[i]);
+        if ((unsigned)inputBuffer[0] << 8 | inputBuffer[1] == BINDING_REQUEST)
+        {
+            std::cout << "This is a binding request!" << std::endl;
+            createBindingSuccessResponse(inputBuffer, responseBuffer, clientAddress);
+            *responseSize = 32;
         }
-        
-
+    }
+    else
+    {
+        *responseSize = 156;
+        std::cout << "error occured" << std::endl;
     }
 }
