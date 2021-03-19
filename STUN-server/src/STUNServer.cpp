@@ -9,10 +9,11 @@
 #include <iostream>
 #include "../inc/STUNOperations.hpp"
 
-#define PORT 8080    // PORT, change this to correct STUN port
-#define MAXLINE 1024 // MAX amount of bytes in datagram packet, change according to RFC
+#define PORT 3478    
+#define MAXLINE 1024 
 
 // TODO: make this one run with threads and put it in a while loop
+// TODO: try to make ipv6 work as well
 
 class STUNServer
 {
@@ -55,7 +56,7 @@ public:
         int bytes_read;
         socklen_t len = sizeof(clientAddress); //Length of clientaddres
 
-        //add condition here
+        while(true){
             memset(buffer, 0, MAXLINE);
             bytes_read = recvfrom(socketfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *)&clientAddress, &len);
             buffer[bytes_read] = '\0';
@@ -67,7 +68,7 @@ public:
             handleSTUNMessage(buffer, response, &responseSize, clientAddress);
 
             sendto(socketfd, (const char *)response, responseSize, MSG_CONFIRM, (const struct sockaddr *)&clientAddress, len);
-        
+        }
     }
 };
 
