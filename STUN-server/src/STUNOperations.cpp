@@ -1,4 +1,6 @@
 #include "../inc/STUNOperations.hpp"
+#include "../inc/STUNResponse.hpp"
+#include "../inc/STUNResponseBuilder.hpp"
 #include <iostream> // temporary for testing
 #include <math.h>
 #include <netinet/in.h>
@@ -43,7 +45,7 @@
 */
 
 #define BINDING_REQUEST 0x0001
-#define BINDING_SUCCESS_RESPONSE 0x0101 
+#define BINDING_SUCCESS_RESPONSE 0x0101
 #define BINDING_ERROR_RESPONSE 0x0111
 #define MAGIC_COOKIE 0x2112A442
 
@@ -51,13 +53,16 @@
 #define ERROR_CODE 0x0009
 
 #define MAGIC_COOKIE_OFFSET 4
-#define MAXLINE 1024 // MAX amount of bytes in datagram packet, change according to RFC
+#define MAXLINE 1024
+#define SUCCESS_RESPONSE_SIZE 32
+#define ERROR_RESPONSE_SIZE 156
 
-static struct Error errorList[4] = {
+static struct Error errorList[5] = {
     {401, "This is not a STUN message. First two bits needs to be 0."},
     {402, "The magic cookie is either missing or not correct. It is supposed to be 0x2112A442."},
     {403, "The transaciton ID is either missing or not the correct value."},
-    {404, "The length is either missing or an invalid value."}};
+    {404, "The length is either missing or an invalid value."},
+    {405, "This STUN message type is either not valid or not implemented in this STUN-server"}};
 
 int isStunMessage(unsigned char byte)
 {
@@ -110,137 +115,55 @@ int validMessageLength(char *input)
     }
 }
 
-void getClientPort(char *buffer, struct sockaddr_in clientAddress)
-{
-    uint16_t port;
-    port = htons(clientAddress.sin_port);
-
-    uint16_t XOR_port = port ^ 0x2112;
-
-    buffer[0] = XOR_port >> 8;
-    buffer[1] = XOR_port & 255;
-}
-
-void getClientIPv4(char *buffer, struct sockaddr_in clientAddress)
-{
-    uint32_t ip = ntohl(clientAddress.sin_addr.s_addr);
-    uint32_t XOR_ip = ip ^ MAGIC_COOKIE;
-
-    buffer[0] = XOR_ip >> 24;
-    buffer[1] = (XOR_ip >> 16) & 255;
-    buffer[2] = (XOR_ip >> 8) & 255;
-    buffer[3] = XOR_ip & 255;
-}
-
-void createSTUNHeader(char *input, char *responseBuffer, short messageType, short length)
-{
-    //Setting STUN messagetype:
-    responseBuffer[0] = messageType >> 8;
-    responseBuffer[1] = messageType & 255;
-
-    //Setting STUN messagelength:
-    responseBuffer[2] = length >> 8;
-    responseBuffer[3] = length & 255;
-
-    //Setting STUN magic cookie
-    responseBuffer[4] = 0x21;
-    responseBuffer[5] = 0x12;
-    responseBuffer[6] = 0xA4;
-    responseBuffer[7] = 0x42;
-
-    //Setting STUN transaction ID
-    for (int i = 8; i < 20; i++)
-    {
-        responseBuffer[i] = input[i];
-    }
-}
-
-void createAttributeHeader(char *responseBuffer, short attributeType, short length)
-{
-    // Setting attribute type
-    responseBuffer[20] = attributeType >> 8;
-    responseBuffer[21] = attributeType & 255;
-
-    // setting attribute length
-    responseBuffer[22] = length >> 8;
-    responseBuffer[23] = length & 255;
-}
-
-void createErrorAttribute(char *responseBuffer, short error, char *reason)
-{
-    // reserved bits
-    responseBuffer[24] = 0;
-    responseBuffer[25] = 0;
-
-    short errorClass = error / 100;
-    responseBuffer[26] = (char)errorClass;
-
-    short errorNumb = error % 100;
-    responseBuffer[27] = (char)errorNumb;
-
-    // 128 because length of the reasons we have defined is no longer than 128
-    for (int i = 0; i < 128; i++)
-    {
-        responseBuffer[28 + i] = reason[i];
-    }
-}
-
 void createBindingSuccessResponse(char *input, char *responseBuffer, struct sockaddr_in clientAddress)
 {
-    // Creating stun header with binding success response message type
-    createSTUNHeader(input, responseBuffer, BINDING_SUCCESS_RESPONSE, 12);
-
-    // Add XOR-MAPPED-ADDRESS attribute
-    createAttributeHeader(responseBuffer, XOR_MAPPED_ADDRESS, 8);
-    // setting attribute value
-    responseBuffer[24] = 0;
-    responseBuffer[25] = 0x01; //Ipv4 address
-
-    char port[2];
-    getClientPort(port, clientAddress);
-    responseBuffer[26] = port[0];
-    responseBuffer[27] = port[1];
-
-    char ip[4];
-    getClientIPv4(ip, clientAddress);
-    for (int i = 28; i < 32; i++)
-    {
-        responseBuffer[i] = ip[i - 28];
+    if(clientAddress.sin_family == AF_INET){
+        std::cout << "this is ipv4 address" << std::endl;
     }
+    if(clientAddress.sin_family == AF_INET6){
+        std::cout << "this is ipv6 address" << std::endl;
+    }
+    
+    STUNResponse::create(responseBuffer)
+        .addMessageType(BINDING_SUCCESS_RESPONSE)
+        .addMessageLength(12)
+        .addMagicCookie()
+        .addTransactionID(input)
+        .addAttributeHeader(XOR_MAPPED_ADDRESS, 8)
+        .addXorMappedAddressIPv4Attribute(ntohl(clientAddress.sin_addr.s_addr), htons(clientAddress.sin_port));
 }
 
-void createBindingErrorResponse(char *inputBuffer, char *responseBuffer, struct Error error)
+void createBindingErrorResponse(char *input, char *responseBuffer, struct Error error)
 {
-    // Creating stun header with binding error response message type
-    createSTUNHeader(inputBuffer, responseBuffer, BINDING_ERROR_RESPONSE, 136);
-    createAttributeHeader(responseBuffer, ERROR_CODE, 132);
-    createErrorAttribute(responseBuffer, error.errorCode, error.reason);
+    STUNResponse::create(responseBuffer)
+        .addMessageType(BINDING_ERROR_RESPONSE)
+        .addMessageLength(136)
+        .addMagicCookie()
+        .addTransactionID(input)
+        .addAttributeHeader(ERROR_CODE, 132)
+        .addErrorAttribute(error.errorCode, error.reason);
 }
 
-int validateSTUNMessage(char *inputBuffer, char *responseBuffer)
+int validSTUNMessage(char *inputBuffer, char *responseBuffer)
 {
-    // Check if the datagram package really is a STUN message
     if (isStunMessage((unsigned char)inputBuffer[0]) == 0)
     {
         std::cout << "This is not a STUN message, two first bits are not zero!" << std::endl;
         createBindingErrorResponse(inputBuffer, responseBuffer, errorList[0]);
         return 0;
     }
-    // Check if the datagram package contains magic cookie
     else if (containsMagicCookie(inputBuffer) == 0)
     {
         std::cout << "This is not a STUN message, missing magic cookie!" << std::endl;
         createBindingErrorResponse(inputBuffer, responseBuffer, errorList[1]);
         return 0;
     }
-    // Check if the transaction id is within its limit
     else if (validTransactionID(inputBuffer) == 0)
     {
         std::cout << "This transactionID is not valid!" << std::endl;
         createBindingErrorResponse(inputBuffer, responseBuffer, errorList[2]);
         return 0;
     }
-    // check if hte message length is valid
     else if (validMessageLength(inputBuffer) == 0)
     {
         std::cout << "This length is not valid!" << std::endl;
@@ -254,18 +177,23 @@ int validateSTUNMessage(char *inputBuffer, char *responseBuffer)
 void handleSTUNMessage(char *inputBuffer, char *responseBuffer, int *responseSize, struct sockaddr_in clientAddress)
 {
 
-    if (validateSTUNMessage(inputBuffer, responseBuffer) == 1)
+    if (validSTUNMessage(inputBuffer, responseBuffer) == 1)
     {
+
         if ((unsigned)inputBuffer[0] << 8 | inputBuffer[1] == BINDING_REQUEST)
         {
-            std::cout << "This is a binding request!" << std::endl;
+            *responseSize = SUCCESS_RESPONSE_SIZE;
             createBindingSuccessResponse(inputBuffer, responseBuffer, clientAddress);
-            *responseSize = 32;
+        }
+        else
+        {
+            *responseSize = ERROR_RESPONSE_SIZE;
+            createBindingErrorResponse(inputBuffer, responseBuffer, errorList[4]);
         }
     }
     else
     {
-        *responseSize = 156;
+        *responseSize = ERROR_RESPONSE_SIZE;
         std::cout << "error occured" << std::endl;
     }
 }
