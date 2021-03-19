@@ -55,15 +55,19 @@ public:
         int bytes_read;
         socklen_t len = sizeof(clientAddress); //Length of clientaddres
 
-        bytes_read = recvfrom(socketfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *)&clientAddress, &len);
-        buffer[bytes_read] = '\0';
+        //add condition here
+            memset(buffer, 0, MAXLINE);
+            bytes_read = recvfrom(socketfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *)&clientAddress, &len);
+            buffer[bytes_read] = '\0';
 
-        std::cout << "Bytes read: " << bytes_read << std::endl;
+            std::cout << "Bytes read: " << bytes_read << std::endl;
 
-        char response[32];
-        handleSTUNMessage(buffer, response, clientAddress);
+            char response[MAXLINE];
+            int responseSize;
+            handleSTUNMessage(buffer, response, &responseSize, clientAddress);
 
-        sendto(socketfd, (const char *)response, 32, MSG_CONFIRM, (const struct sockaddr *)&clientAddress, len);
+            sendto(socketfd, (const char *)response, responseSize, MSG_CONFIRM, (const struct sockaddr *)&clientAddress, len);
+        
     }
 };
 

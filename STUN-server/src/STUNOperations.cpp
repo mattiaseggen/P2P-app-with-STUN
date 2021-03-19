@@ -4,6 +4,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <iomanip>
+
 /**
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -44,9 +46,18 @@
 #define BINDING_SUCCESS_RESPONSE 0x0101
 #define BINDING_ERROR_RESPONSE 0x0111
 #define MAGIC_COOKIE 0x2112A442
-// TODO: Add other type, maybe indication
+
+#define XOR_MAPPED_ADDRESS 0x0020
+#define ERROR_CODE 0x0009
+
 #define MAGIC_COOKIE_OFFSET 4
 #define MAXLINE 1024 // MAX amount of bytes in datagram packet, change according to RFC
+
+static struct Error errorList[4] = {
+    {401, "This is not a STUN message. First two bits needs to be 0."},
+    {402, "The magic cookie is either missing or not correct. It is supposed to be 0x2112A442."},
+    {403, "The transaciton ID is either missing or not the correct value."},
+    {404, "The length is either missing or an invalid value."}};
 
 int isStunMessage(unsigned char byte)
 {
@@ -121,15 +132,15 @@ void getClientIPv4(char *buffer, struct sockaddr_in clientAddress)
     buffer[3] = XOR_ip & 255;
 }
 
-void createBindingSuccessResponse(char *input, char *responseBuffer, struct sockaddr_in clientAddress)
-{ //Double check if this is the correct way for responseBuffer
+void createSTUNHeader(char *input, char *responseBuffer, short messageType, short length)
+{
     //Setting STUN messagetype:
-    responseBuffer[0] = BINDING_SUCCESS_RESPONSE >> 8;
-    responseBuffer[1] = BINDING_SUCCESS_RESPONSE & 255;
+    responseBuffer[0] = messageType >> 8;
+    responseBuffer[1] = messageType & 255;
 
     //Setting STUN messagelength:
-    responseBuffer[2] = 0;
-    responseBuffer[3] = 12;
+    responseBuffer[2] = length >> 8;
+    responseBuffer[3] = length & 255;
 
     //Setting STUN magic cookie
     responseBuffer[4] = 0x21;
@@ -142,14 +153,45 @@ void createBindingSuccessResponse(char *input, char *responseBuffer, struct sock
     {
         responseBuffer[i] = input[i];
     }
+}
 
-    //Add XOR-MAPPED-ADDRESS attribute
-    // setting attribute type
-    responseBuffer[20] = 0;
-    responseBuffer[21] = 0x20;
+void createAttributeHeader(char *responseBuffer, short attributeType, short length)
+{
+    // Setting attribute type
+    responseBuffer[20] = attributeType >> 8;
+    responseBuffer[21] = attributeType & 255;
+
     // setting attribute length
-    responseBuffer[22] = 0;
-    responseBuffer[23] = 8;
+    responseBuffer[22] = length >> 8;
+    responseBuffer[23] = length & 255;
+}
+
+void createErrorAttribute(char *responseBuffer, short error, char *reason)
+{
+    // reserved bits
+    responseBuffer[24] = 0;
+    responseBuffer[25] = 0;
+
+    short errorClass = error / 100;
+    responseBuffer[26] = (char)errorClass;
+
+    short errorNumb = error % 100;
+    responseBuffer[27] = (char)errorNumb;
+
+    // 128 because length of the reasons we have defined is no longer than 128
+    for (int i = 0; i < 128; i++)
+    {
+        responseBuffer[28 + i] = reason[i];
+    }
+}
+
+void createBindingSuccessResponse(char *input, char *responseBuffer, struct sockaddr_in clientAddress)
+{
+    // Creating stun header with binding success response message type
+    createSTUNHeader(input, responseBuffer, BINDING_SUCCESS_RESPONSE, 12);
+
+    // Add XOR-MAPPED-ADDRESS attribute
+    createAttributeHeader(responseBuffer, XOR_MAPPED_ADDRESS, 8);
     // setting attribute value
     responseBuffer[24] = 0;
     responseBuffer[25] = 0x01; //Ipv4 address
@@ -167,40 +209,63 @@ void createBindingSuccessResponse(char *input, char *responseBuffer, struct sock
     }
 }
 
-void handleSTUNMessage(char *inputBuffer, char *responseBuffer, struct sockaddr_in clientAddress)
+void createBindingErrorResponse(char *inputBuffer, char *responseBuffer, struct Error error)
+{
+    // Creating stun header with binding error response message type
+    createSTUNHeader(inputBuffer, responseBuffer, BINDING_ERROR_RESPONSE, 136);
+    createAttributeHeader(responseBuffer, ERROR_CODE, 132);
+    createErrorAttribute(responseBuffer, error.errorCode, error.reason);
+}
+
+int validateSTUNMessage(char *inputBuffer, char *responseBuffer)
 {
     // Check if the datagram package really is a STUN message
     if (isStunMessage((unsigned char)inputBuffer[0]) == 0)
     {
-        // TODO: create STUN error response
         std::cout << "This is not a STUN message, two first bits are not zero!" << std::endl;
+        createBindingErrorResponse(inputBuffer, responseBuffer, errorList[0]);
+        return 0;
     }
-
     // Check if the datagram package contains magic cookie
-    if (containsMagicCookie(inputBuffer) == 0)
+    else if (containsMagicCookie(inputBuffer) == 0)
     {
-        // TODO: create STUN error response
         std::cout << "This is not a STUN message, missing magic cookie!" << std::endl;
+        createBindingErrorResponse(inputBuffer, responseBuffer, errorList[1]);
+        return 0;
     }
-
     // Check if the transaction id is within its limit
-    if (validTransactionID(inputBuffer) == 0)
+    else if (validTransactionID(inputBuffer) == 0)
     {
-        // TODO: create STUN error response
         std::cout << "This transactionID is not valid!" << std::endl;
+        createBindingErrorResponse(inputBuffer, responseBuffer, errorList[2]);
+        return 0;
     }
-
     // check if hte message length is valid
-    if (validMessageLength(inputBuffer) == 0)
+    else if (validMessageLength(inputBuffer) == 0)
     {
-        // TODO: create STUN error response
         std::cout << "This length is not valid!" << std::endl;
+        createBindingErrorResponse(inputBuffer, responseBuffer, errorList[3]);
+        return 0;
     }
 
-    //----------- handle message type -----------//
-    if ((unsigned)inputBuffer[0] << 8 | inputBuffer[1] == BINDING_REQUEST)
+    return 1;
+}
+
+void handleSTUNMessage(char *inputBuffer, char *responseBuffer, int *responseSize, struct sockaddr_in clientAddress)
+{
+
+    if (validateSTUNMessage(inputBuffer, responseBuffer) == 1)
     {
-        std::cout << "This is a binding request!" << std::endl;
-        createBindingSuccessResponse(inputBuffer, responseBuffer, clientAddress);
+        if ((unsigned)inputBuffer[0] << 8 | inputBuffer[1] == BINDING_REQUEST)
+        {
+            std::cout << "This is a binding request!" << std::endl;
+            createBindingSuccessResponse(inputBuffer, responseBuffer, clientAddress);
+            *responseSize = 32;
+        }
+    }
+    else
+    {
+        *responseSize = 156;
+        std::cout << "error occured" << std::endl;
     }
 }
