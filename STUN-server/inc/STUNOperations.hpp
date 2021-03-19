@@ -17,3 +17,10 @@ struct Error {
  * @param clientAddress client socket info containing port and ip-address
 */
 void handleSTUNMessage(char *inputBuffer, char *responeBuffer, int *responseSize, struct sockaddr_in clientAddress);
+
+
+// TODO Add descriptions to these like above
+int isStunMessage(unsigned char byte);
+int containsMagicCookie(char *input);
+int validTransactionID(char *input);
+int validMessageLength(char *input);
