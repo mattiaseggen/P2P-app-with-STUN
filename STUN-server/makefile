@@ -17,7 +17,7 @@ STUNResponseBuilder.o: $(SRC)STUNResponseBuilder.cpp
 	g++ -c $(SRC)STUNResponseBuilder.cpp
 
 
-make test: test.o
+make test: test.o STUNOperations.o STUNResponse.o STUNResponseBuilder.o
 	g++ test.o STUNOperations.o STUNResponse.o STUNResponseBuilder.o -o TestProgram
 
 test.o: $(TEST)test.cpp
