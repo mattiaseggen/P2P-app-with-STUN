@@ -1,4 +1,4 @@
-#include "../src/STUNOperations.cpp"
+#include "../inc/STUNOperations.hpp"
 #include <assert.h>
 
 
@@ -21,6 +21,7 @@ void testValidMessageLength(char *testInput){
     int result = validMessageLength(testInput);
     assert(result == 1);
 }
+
 
 // TODO: make better/more tests
 
