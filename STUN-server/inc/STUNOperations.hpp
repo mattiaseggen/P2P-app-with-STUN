@@ -1,4 +1,4 @@
-
+#include <array>
 
 /**
  * Struct containing error code and reason 
@@ -16,11 +16,11 @@ struct Error {
  * @param responseBuffer response buffer that will be sent back to client
  * @param clientAddress client socket info containing port and ip-address
 */
-void handleSTUNMessage(char *inputBuffer, char *responeBuffer, int *responseSize, struct sockaddr_in clientAddress);
+void handleSTUNMessage(std::array<char, 1024> inputBuffer, char *responeBuffer, int *responseSize, struct sockaddr_in clientAddress);
 
 
 // TODO Add descriptions to these like above
 int isStunMessage(unsigned char byte);
-int containsMagicCookie(char *input);
-int validTransactionID(char *input);
-int validMessageLength(char *input);
+int containsMagicCookie(std::array<char, 1024> &input);
+int validTransactionID(std::array<char, 1024> &input);
+int validMessageLength(std::array<char, 1024> &input);
