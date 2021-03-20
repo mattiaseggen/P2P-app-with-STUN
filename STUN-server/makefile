@@ -2,7 +2,7 @@ SRC = ./src/
 TEST = ./test/
 
 STUNServer: STUNServer.o STUNOperations.o STUNResponse.o STUNResponseBuilder.o
-	g++ STUNServer.o STUNOperations.o STUNResponse.o STUNResponseBuilder.o -o STUNServer
+	g++ STUNServer.o STUNOperations.o STUNResponse.o STUNResponseBuilder.o -lpthread -o STUNServer
 
 STUNServer.o: $(SRC)STUNServer.cpp
 	g++ -c $(SRC)STUNServer.cpp

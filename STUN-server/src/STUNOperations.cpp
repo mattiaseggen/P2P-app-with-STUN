@@ -73,7 +73,7 @@ int isStunMessage(unsigned char byte)
     return 0;
 }
 
-int containsMagicCookie(char *input)
+int containsMagicCookie(std::array<char, MAXLINE> &input)
 {
     unsigned char expectedVal[4] = {0x21, 0x12, 0xA4, 0x42};
 
@@ -87,7 +87,7 @@ int containsMagicCookie(char *input)
     return 1;
 }
 
-int validTransactionID(char *input)
+int validTransactionID(std::array<char, MAXLINE> &input)
 {
     typedef unsigned char u8;
     unsigned transactionID = ((u8)input[8] << 24) | ((u8)input[9] << 16) | ((u8)input[10] << 8) | (u8)input[11];
@@ -100,8 +100,8 @@ int validTransactionID(char *input)
         return 0;
     }
 }
-
-int validMessageLength(char *input)
+// CHECK LEAST SIGNIFICANT BITS IN LENGTH
+int validMessageLength(std::array<char, MAXLINE> &input)
 {
     typedef unsigned char u8;
     unsigned length = ((u8)input[2] << 8) | (u8)input[3];
@@ -115,15 +115,8 @@ int validMessageLength(char *input)
     }
 }
 
-void createBindingSuccessResponse(char *input, char *responseBuffer, struct sockaddr_in clientAddress)
+void createBindingSuccessResponse(std::array<char, MAXLINE> &input, char *responseBuffer, struct sockaddr_in clientAddress)
 {
-    if(clientAddress.sin_family == AF_INET){
-        std::cout << "this is ipv4 address" << std::endl;
-    }
-    if(clientAddress.sin_family == AF_INET6){
-        std::cout << "this is ipv6 address" << std::endl;
-    }
-    
     STUNResponse::create(responseBuffer)
         .addMessageType(BINDING_SUCCESS_RESPONSE)
         .addMessageLength(12)
@@ -133,7 +126,7 @@ void createBindingSuccessResponse(char *input, char *responseBuffer, struct sock
         .addXorMappedAddressIPv4Attribute(ntohl(clientAddress.sin_addr.s_addr), htons(clientAddress.sin_port));
 }
 
-void createBindingErrorResponse(char *input, char *responseBuffer, struct Error error)
+void createBindingErrorResponse(std::array<char, MAXLINE> &input, char *responseBuffer, struct Error error)
 {
     STUNResponse::create(responseBuffer)
         .addMessageType(BINDING_ERROR_RESPONSE)
@@ -144,7 +137,7 @@ void createBindingErrorResponse(char *input, char *responseBuffer, struct Error 
         .addErrorAttribute(error.errorCode, error.reason);
 }
 
-int validSTUNMessage(char *inputBuffer, char *responseBuffer)
+int validSTUNMessage(std::array<char, MAXLINE> &inputBuffer, char *responseBuffer)
 {
     if (isStunMessage((unsigned char)inputBuffer[0]) == 0)
     {
@@ -174,7 +167,7 @@ int validSTUNMessage(char *inputBuffer, char *responseBuffer)
     return 1;
 }
 
-void handleSTUNMessage(char *inputBuffer, char *responseBuffer, int *responseSize, struct sockaddr_in clientAddress)
+void handleSTUNMessage(std::array<char, MAXLINE> inputBuffer, char *responseBuffer, int *responseSize, struct sockaddr_in clientAddress)
 {
 
     if (validSTUNMessage(inputBuffer, responseBuffer) == 1)

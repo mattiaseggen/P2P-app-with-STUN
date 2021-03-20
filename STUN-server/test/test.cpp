@@ -4,7 +4,7 @@
 int main()
 {
 
-    char testInput1[20] = {
+    std::array<char,1024> testInput1 = {
         (char)0, (char)1, (char)0, (char)0, 
         (char)33, (char)18, (char)164, (char)66, 
         (char)121, (char)109, (char)109, (char)120, 
