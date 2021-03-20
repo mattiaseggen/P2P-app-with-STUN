@@ -1,6 +1,6 @@
 /*
+run 'npm install' to get dependencies.
 To run dev server, make sure to be in the webrtc-application folder, and run 'npm run dev'.
-If this is the first time running the project, 'npm install' also needs to be run.
 */
 
 
@@ -24,17 +24,16 @@ if (!firebase.apps.length) {
 }
 const firestore = firebase.firestore();
 
-const servers = {
+const config = {
   iceServers: [
     {
-      urls: ["stun:13.74.199.118:8080"],
+      urls: ["stun:13.74.199.118:3478"],
     },
   ],
-  iceCandidatePoolSize: 10,
 };
 
 // Global State
-const pc = new RTCPeerConnection(servers);
+const pc = new RTCPeerConnection(config);
 let localStream = null;
 let remoteStream = null;
 
@@ -46,13 +45,15 @@ const callInput = document.getElementById("callInput");
 const answerButton = document.getElementById("answerButton");
 const remoteVideo = document.getElementById("remoteVideo");
 const hangupButton = document.getElementById("hangupButton");
+const dropdownButton = document.getElementById("dropdownButton");
+const refreshButton = document.getElementById('refreshButton');
 
 // 1. Setup media sources
 
 webcamButton.onclick = async () => {
   localStream = await navigator.mediaDevices.getUserMedia({
     video: true,
-    audio: true,
+    audio: false,
   });
   remoteStream = new MediaStream();
 
@@ -121,7 +122,22 @@ callButton.onclick = async () => {
   });
 
   hangupButton.disabled = false;
+  dropdownButton.disabled = false;
 };
+
+// Refresh available calls
+refreshButton.onclick = async () => {
+  const callsRef = firestore.collection('calls');
+  const snapshot = await callsRef.get();
+  if (snapshot.empty) {
+    console.log('No matching calls');
+    return;
+  }
+
+  snapshot.forEach(doc => {
+    console.log(doc.id, '=>', doc.data());
+  })
+}
 
 // 3. Answer the call with the unique ID
 answerButton.onclick = async () => {

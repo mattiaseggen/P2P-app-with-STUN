@@ -17,8 +17,6 @@
         <h3>Remote Stream</h3>
         <video id="remoteVideo" autoplay playsinline></video>
       </span>
-
-
     </div>
 
     <button id="webcamButton">Start webcam</button>
@@ -30,6 +28,17 @@
     
     <input id="callInput" />
     <button id="answerButton" disabled>Answer</button>
+    
+    <div class="dropdown">
+      <button onclick="myFunction()" class="dropButton" id="dropdownButton" disabled>Available calls</button>
+      <div id="myDropdown" class="dropdown-content">
+        <a href="call1">call 1</a>
+        <a href="call2">call 2</a>
+        <a href="call3">call 3</a>
+      </div>
+    </div>
+
+    <button id="refreshButton">Refresh</button>
 
     <h2>4. Hangup</h2>
 
