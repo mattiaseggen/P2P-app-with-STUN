@@ -59,6 +59,27 @@ const modalContent1 = document.getElementById("modalCnt1");
 const modalContent2 = document.getElementById("modalCnt2");
 const modalContent3 = document.getElementById("modalCnt3");
 const modalContent4 = document.getElementById("modalCnt4");
+const backButton = document.getElementById("backButton");
+const backButton2 = document.getElementById("backButton2");
+
+
+backButton.addEventListener("click", () => {
+  goBack();
+})
+backButton2.addEventListener("click", () => {
+  goBack();
+})
+
+
+let goBack = () => {
+  if(modalContent3.style.display == "block"){
+    modalContent3.style.display = "none";
+  }
+  if(modalContent4.style.display == "block"){
+    modalContent4.style.display = "none";
+  }
+  modalContent2.style.display = "block";
+}
 
 joinButton.addEventListener("click", () => {
   console.log("join button clicked");

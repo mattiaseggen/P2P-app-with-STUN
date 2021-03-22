@@ -88,6 +88,10 @@ video {
   justify-content: center;
 }
 
+.modal-container div{
+  margin-top: 3rem;
+}
+
 .modal-container button{
   margin: 1rem;
   width: 35%;
@@ -99,6 +103,7 @@ video {
 }
 
 .modal-content-1 {
+  height: 100%;
   display: block;
 }
 
@@ -107,13 +112,16 @@ video {
 }
 
 .modal-content-2{
+  height: 100%;
   display: none;
 }
 
 .modal-content-3 {
+  height: 100%;
   display: none;
 }
 
 .modal-content-4 {
+  height: 100%;
   display: none;
 }
