@@ -26,7 +26,7 @@ const firestore = firebase.firestore();
 const config = {
   iceServers: [
     {
-      urls: ["stun:stun1.l.google.com:19302"],
+      urls: ["stun:13.74.199.118:3478"],
     },
   ],
 };
