@@ -3,23 +3,64 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WebRTC Demo</title>
   </head>
   <body>
-    <h2>1. Start your Webcam</h2>
+
+
+
+
+        <!-- The Modal -->
+    <div id="myModal" class="modal" style="display: block;">
+      <div class="modal-container">
+        <div id="modalCnt1" class="modal-content-1">
+          <h2>Step 1</h2>
+          <h3>Setup webcam</h3>
+          <button type="button" class="btn btn-primary btn-lg" id="webcamButton">Start Webcam</button>
+        </div>
+        <div id="modalCnt2" class="modal-content-2">
+          <h2>Step 2</h2>
+          <h3 style="margin-top: 5rem;">Select option</h3>
+          <button id="joinButton" type="button" class="btn btn-primary btn-lg">Join meeting</button>
+          <p>or</p>
+          <button id="hostButton" type="button" class="btn btn-primary btn-lg">Host meeting</button>
+        </div>
+        <div id="modalCnt3" class="modal-content-3">
+          <h2>Step 3</h2>
+          <h3>Enter invitaion code</h3>
+          <input  id="callInput" class="joinInput" type="text">
+          <button id="answerButton" class="btn btn-primary">Join</button>
+        </div>
+        <div id="modalCnt4" class="modal-content-4">
+          <h2>Step 3</h2>
+          <h3>Create offer</h3>
+          <button id="callButton" class="btn btn-primary btn-lg">Generate offer</button>
+          <input id="invitationCode">
+        </div>
+      </div>
+    </div>
+
+
     <div class="videos">
       <span>
         <h3>Local Stream</h3>
-        <video id="webcamVideo" autoplay playsinline></video>
+        <video id="webcamVideo" autoplay playsinline style="border-radius: 1rem;"></video>
       </span>
       <span>
         <h3>Remote Stream</h3>
-        <video id="remoteVideo" autoplay playsinline></video>
+        <video id="remoteVideo" autoplay playsinline style="border-radius: 1rem;"></video>
       </span>
     </div>
 
-    <button id="webcamButton">Start webcam</button>
+    <button id="refreshButton">Refresh</button>
+    <button id="share-button">share screen</button>
+    <button id="stop-share-button">stop share screen</button>
+
+
+    <!--
+    <button id="webcamButton">Start webcam</button> 
     <h2>2. Create a new Call</h2>
     <button id="callButton" disabled>Create Call (offer)</button>
 
@@ -40,10 +81,15 @@
 
     <button id="refreshButton">Refresh</button>
 
+    <button id="share-button">share screen</button>
+    <button id="stop-share-button">stop share screen</button>
+
+
     <h2>4. Hangup</h2>
 
     <button id="hangupButton" disabled>Hangup</button>
-
+  -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
     <script type="module" src="/main.js"></script>
 
   </body>

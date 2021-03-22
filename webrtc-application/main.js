@@ -5,7 +5,6 @@ To run dev server, make sure to be in the webrtc-application folder, and run 'np
 
 
 import "./style.css";
-
 import firebase from "firebase/app";
 import "firebase/firestore";
 
@@ -27,7 +26,7 @@ const firestore = firebase.firestore();
 const config = {
   iceServers: [
     {
-      urls: ["stun:13.74.199.118:3478"],
+      urls: ["stun:stun1.l.google.com:19302"],
     },
   ],
 };
@@ -36,17 +35,44 @@ const config = {
 const pc = new RTCPeerConnection(config);
 let localStream = null;
 let remoteStream = null;
+let displayMediaStream = null;
+
+let senders = [];
 
 // HTML elements
 const webcamButton = document.getElementById("webcamButton");
 const webcamVideo = document.getElementById("webcamVideo");
 const callButton = document.getElementById("callButton");
-const callInput = document.getElementById("callInput");
+//const callInput = document.getElementById("callInput");
+const invitationCode = document.getElementById("invitationCode");
 const answerButton = document.getElementById("answerButton");
 const remoteVideo = document.getElementById("remoteVideo");
 const hangupButton = document.getElementById("hangupButton");
 const dropdownButton = document.getElementById("dropdownButton");
 const refreshButton = document.getElementById('refreshButton');
+const shareButton = document.getElementById("share-button");
+const stopShareButton = document.getElementById("stop-share-button");
+const joinButton = document.getElementById("joinButton");
+const hostButton = document.getElementById("hostButton");
+const modal = document.getElementById("myModal");
+const modalContent1 = document.getElementById("modalCnt1");
+const modalContent2 = document.getElementById("modalCnt2");
+const modalContent3 = document.getElementById("modalCnt3");
+const modalContent4 = document.getElementById("modalCnt4");
+
+joinButton.addEventListener("click", () => {
+  console.log("join button clicked");
+  modalContent2.style.display = "none";
+  modalContent3.style.display= "block";
+});
+
+hostButton.addEventListener("click", () => {
+  console.log("host button clicked");
+  modalContent2.style.display = "none";
+  modalContent4.style.display = "block"
+});
+
+
 
 // 1. Setup media sources
 
@@ -57,9 +83,10 @@ webcamButton.onclick = async () => {
   });
   remoteStream = new MediaStream();
 
+
   // Push tracks from local stream to peer connection
   localStream.getTracks().forEach((track) => {
-    pc.addTrack(track, localStream);
+    senders.push(pc.addTrack(track, localStream));
   });
 
   // Pull tracks from remote stream, add to video stream
@@ -72,10 +99,32 @@ webcamButton.onclick = async () => {
   webcamVideo.srcObject = localStream;
   remoteVideo.srcObject = remoteStream;
 
-  callButton.disabled = false;
-  answerButton.disabled = false;
-  webcamButton.disabled = true;
+  if(localStream != null){
+    modalContent1.style.display = "none";
+    modalContent2.style.display = "block";
+  }
 };
+
+shareButton.addEventListener("click", async () => {
+  if(!displayMediaStream){
+    displayMediaStream = await navigator.mediaDevices.getDisplayMedia();
+  }
+
+  senders.find(sender => sender.track.kind == 'video').replaceTrack(displayMediaStream.getTracks()[0]);
+  
+  webcamVideo.srcObject = displayMediaStream;
+
+  shareButton.style.display = "none";
+  stopShareButton.style.display = "inline";
+});
+
+stopShareButton.addEventListener("click", async (event) => {
+  senders.find(sender => sender.track.kind == 'video').replaceTrack(localStream.getTracks().find(track => track.kind === 'video'));
+
+  webcamVideo.srcObject = localStream;
+  shareButton.style.display = "inline";
+  stopShareButton.style.display = 'none';
+})
 
 // 2. Create an offer
 callButton.onclick = async () => {
@@ -84,7 +133,7 @@ callButton.onclick = async () => {
   const offerCandidates = callDoc.collection("offerCandidates");
   const answerCandidates = callDoc.collection("answerCandidates");
 
-  callInput.value = callDoc.id;
+  invitationCode.value = callDoc.id;
 
   // Get candidates for caller, save to db
   pc.onicecandidate = (event) => {
@@ -108,6 +157,7 @@ callButton.onclick = async () => {
     if (!pc.currentRemoteDescription && data?.answer) {
       const answerDescription = new RTCSessionDescription(data.answer);
       pc.setRemoteDescription(answerDescription);
+      modal.style.display = "none"
     }
   });
 
@@ -121,8 +171,6 @@ callButton.onclick = async () => {
     });
   });
 
-  hangupButton.disabled = false;
-  dropdownButton.disabled = false;
 };
 
 // Refresh available calls
@@ -135,7 +183,7 @@ refreshButton.onclick = async () => {
   }
 
   snapshot.forEach(doc => {
-    console.log(doc.id, '=>', doc.data());
+    console.log(doc.id, '=>', doc.data().offer);
   })
 }
 
@@ -169,6 +217,7 @@ answerButton.onclick = async () => {
     snapshot.docChanges().forEach((change) => {
       console.log(change);
       if (change.type === "added") {
+        modal.style.display = "none";
         let data = change.doc.data();
         pc.addIceCandidate(new RTCIceCandidate(data));
       }

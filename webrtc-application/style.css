@@ -60,3 +60,60 @@ video {
 
 /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
 .show {display:block;}
+
+/* The Modal (background) */
+.modal {
+  display: block; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  
+}
+
+.modal-container{
+  width: 40vw;
+  height: 60vh;
+  background-color: white;
+  border-radius: 10%;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.modal-container button{
+  margin: 1rem;
+  width: 35%;
+}
+
+.modal-container p {
+  margin: 1rem;
+  font-size: 25px;
+}
+
+.modal-content-1 {
+  display: block;
+}
+
+.modal-content-1 h3 {
+  margin-top: 5rem;
+}
+
+.modal-content-2{
+  display: none;
+}
+
+.modal-content-3 {
+  display: none;
+}
+
+.modal-content-4 {
+  display: none;
+}
