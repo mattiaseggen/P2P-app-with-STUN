@@ -38,5 +38,5 @@ jobs:
           cd frivillig-prosjekt
           git pull origin master
           cd STUN-server
-          make
+          sudo make
           ./STUNServer
