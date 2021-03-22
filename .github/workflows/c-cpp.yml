@@ -39,4 +39,4 @@ jobs:
           git pull origin master
           cd STUN-server
           sudo make
-          ./STUNServer
+          ./STUNServer &
