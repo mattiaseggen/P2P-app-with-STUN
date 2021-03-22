@@ -37,4 +37,5 @@ jobs:
         script: | 
           cd frivillig-prosjekt
           git pull origin master
+          ls
           git status
