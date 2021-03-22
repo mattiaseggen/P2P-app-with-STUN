@@ -40,3 +40,4 @@ jobs:
           cd STUN-server
           sudo make
           ./STUNServer &
+          exit
