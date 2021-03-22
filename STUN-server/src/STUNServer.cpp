@@ -69,10 +69,6 @@ public:
         // can't be sent as copies, which is necessary when using thread.
         std::array<char, MAXLINE> bufferCopy;
 
-        worker_threads.post_timeout([&stop]{
-            stop = true;
-        }, 10); //Stopper while loopen etter 10 sekunder
-
         while(!stop){
             memset(buffer, 0, MAXLINE);
             bytes_read = recvfrom(socketfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *)&clientAddress, &len);
