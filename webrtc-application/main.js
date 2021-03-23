@@ -32,7 +32,8 @@ const config = {
 };
 
 // Global State
-const pc = new RTCPeerConnection(config);
+let peerConnection = new RTCPeerConnection(config);
+let dataChannel = peerConnection.createDataChannel('datachannel');
 let localStream = null;
 let remoteStream = null;
 let displayMediaStream = null;
@@ -43,12 +44,9 @@ let senders = [];
 const webcamButton = document.getElementById("webcamButton");
 const webcamVideo = document.getElementById("webcamVideo");
 const callButton = document.getElementById("callButton");
-//const callInput = document.getElementById("callInput");
 const invitationCode = document.getElementById("invitationCode");
 const answerButton = document.getElementById("answerButton");
 const remoteVideo = document.getElementById("remoteVideo");
-const hangupButton = document.getElementById("hangupButton");
-const dropdownButton = document.getElementById("dropdownButton");
 const refreshButton = document.getElementById('refreshButton');
 const shareButton = document.getElementById("share-button");
 const stopShareButton = document.getElementById("stop-share-button");
@@ -59,6 +57,9 @@ const modalContent1 = document.getElementById("modalCnt1");
 const modalContent2 = document.getElementById("modalCnt2");
 const modalContent3 = document.getElementById("modalCnt3");
 const modalContent4 = document.getElementById("modalCnt4");
+const sendMessageButton = document.getElementById("sendMessageButton");
+let dataChannelSend = document.getElementById("dataChannelSend");
+let messageBox = document.getElementById("messageBox");
 
 joinButton.addEventListener("click", () => {
   console.log("join button clicked");
@@ -72,6 +73,21 @@ hostButton.addEventListener("click", () => {
   modalContent4.style.display = "block"
 });
 
+peerConnection.addEventListener('datachannel', event => {
+  dataChannel = event.channel;
+});
+
+sendMessageButton.addEventListener('click', event => {
+  const message = dataChannelSend.value;
+  dataChannel.send(message);
+  messageBox.value += 'Me: ' + message + '\n';
+  dataChannelSend.value = '';
+});
+
+dataChannel.addEventListener('message', event => {
+  const message = event.data;
+  messageBox.value += message + '\n';
+})
 
 
 // 1. Setup media sources
@@ -86,11 +102,11 @@ webcamButton.onclick = async () => {
 
   // Push tracks from local stream to peer connection
   localStream.getTracks().forEach((track) => {
-    senders.push(pc.addTrack(track, localStream));
+    senders.push(peerConnection.addTrack(track, localStream));
   });
 
   // Pull tracks from remote stream, add to video stream
-  pc.ontrack = (event) => {
+  peerConnection.ontrack = (event) => {
     event.streams[0].getTracks().forEach((track) => {
       remoteStream.addTrack(track);
     });
@@ -124,7 +140,7 @@ stopShareButton.addEventListener("click", async (event) => {
   webcamVideo.srcObject = localStream;
   shareButton.style.display = "inline";
   stopShareButton.style.display = 'none';
-})
+});
 
 // 2. Create an offer
 callButton.onclick = async () => {
@@ -136,27 +152,28 @@ callButton.onclick = async () => {
   invitationCode.value = callDoc.id;
 
   // Get candidates for caller, save to db
-  pc.onicecandidate = (event) => {
+  peerConnection.onicecandidate = (event) => {
     event.candidate && offerCandidates.add(event.candidate.toJSON());
   };
 
+  
   // Create offer
-  const offerDescription = await pc.createOffer();
-  await pc.setLocalDescription(offerDescription);
-
+  const offerDescription = await peerConnection.createOffer();
+  await peerConnection.setLocalDescription(offerDescription);
+  
   const offer = {
     sdp: offerDescription.sdp,
     type: offerDescription.type,
   };
-
+  
   await callDoc.set({ offer });
 
   // Listen for remote answer
   callDoc.onSnapshot((snapshot) => {
     const data = snapshot.data();
-    if (!pc.currentRemoteDescription && data?.answer) {
+    if (!peerConnection.currentRemoteDescription && data?.answer) {
       const answerDescription = new RTCSessionDescription(data.answer);
-      pc.setRemoteDescription(answerDescription);
+      peerConnection.setRemoteDescription(answerDescription);
       modal.style.display = "none"
     }
   });
@@ -166,11 +183,10 @@ callButton.onclick = async () => {
     snapshot.docChanges().forEach((change) => {
       if (change.type === "added") {
         const candidate = new RTCIceCandidate(change.doc.data());
-        pc.addIceCandidate(candidate);
+        peerConnection.addIceCandidate(candidate);
       }
     });
   });
-
 };
 
 // Refresh available calls
@@ -194,17 +210,17 @@ answerButton.onclick = async () => {
   const answerCandidates = callDoc.collection("answerCandidates");
   const offerCandidates = callDoc.collection("offerCandidates");
 
-  pc.onicecandidate = (event) => {
+  peerConnection.onicecandidate = (event) => {
     event.candidate && answerCandidates.add(event.candidate.toJSON());
   };
-
+  
   const callData = (await callDoc.get()).data();
 
   const offerDescription = callData.offer;
-  await pc.setRemoteDescription(new RTCSessionDescription(offerDescription));
+  await peerConnection.setRemoteDescription(new RTCSessionDescription(offerDescription));
 
-  const answerDescription = await pc.createAnswer();
-  await pc.setLocalDescription(answerDescription);
+  const answerDescription = await peerConnection.createAnswer();
+  await peerConnection.setLocalDescription(answerDescription);
 
   const answer = {
     type: answerDescription.type,
@@ -219,7 +235,7 @@ answerButton.onclick = async () => {
       if (change.type === "added") {
         modal.style.display = "none";
         let data = change.doc.data();
-        pc.addIceCandidate(new RTCIceCandidate(data));
+        peerConnection.addIceCandidate(new RTCIceCandidate(data));
       }
     });
   });
