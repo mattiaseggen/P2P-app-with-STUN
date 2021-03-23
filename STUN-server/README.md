@@ -29,9 +29,17 @@ DOCker????
 
 This is an installation guide that gives instructions on how to set up the STUN-server.
 
+#### Clone the project
+
+1. Clone this git repository [P2P-app-with-STUN](https://github.com/mattiaseggen/P2P-app-with-STUN)
+2. CD into the project folder and then the "STUN-server".
+3. Now you can proceed to the next section.
+
+#### How to start STUN-server
+
 1. 
 
-## How to start STUN-server
+
 
 ## How run tests
 

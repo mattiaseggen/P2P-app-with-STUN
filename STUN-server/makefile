@@ -27,5 +27,6 @@ test.o: $(TEST)test.cpp
 clean:
 	rm *.o STUNServer TestProgram
 
-run: STUNServer
-	./STUNServer
+run:
+	docker-compose build stun-server
+	docker-compose up
