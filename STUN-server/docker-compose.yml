@@ -1,0 +1,8 @@
+version: "3"
+services:
+  stun-server:
+    image: ubuntu:latest
+    container_name: stun-server
+    build: .
+    ports:
+      - "3478:3478/udp"
