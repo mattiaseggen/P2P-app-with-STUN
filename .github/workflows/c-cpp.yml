@@ -21,7 +21,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: change directory and make test
-      run: cd STUN-server && make test && ./TestProgram
+      run: cd STUN-server && make test
 
   deploy_STUN_server:
     name: deploy_STUN_server
@@ -40,7 +40,4 @@ jobs:
           docker rm $(docker ps -a -q)
           git pull origin main
           git status
-          cd STUN-server
-          docker-compose build stun-server
-          nohup bash -c "docker-compose up &" && sleep 4
 
