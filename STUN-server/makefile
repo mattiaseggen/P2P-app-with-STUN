@@ -26,3 +26,6 @@ test.o: $(TEST)test.cpp
 
 clean:
 	rm *.o STUNServer TestProgram
+
+run: STUNServer
+	./STUNServer

@@ -15,7 +15,24 @@ The STUN-server is a UDP server that uses a Worker class that creates worker thr
 
 The first, and most important, functionality that is implemented is **recieving STUN binding request and returning the port and IPv4 address in a STUN success response**. Other methods
 
+## Future development
+
+## External dependencies
+
+We use **CMake** which is used for build automation, testing, including packages and installation of software. We have used it to compile our code as well as run tests and the program itself.
+
+DOCker????
 
 
 
+## Installation Guide
 
+This is an installation guide that gives instructions on how to set up the STUN-server.
+
+1. 
+
+## How to start STUN-server
+
+## How run tests
+
+## API Documentation
