@@ -44,3 +44,4 @@ jobs:
           docker-compose build stun-server
           nohup docker-compose up &
           sleep 5
+          echo doneeeeeeeee
