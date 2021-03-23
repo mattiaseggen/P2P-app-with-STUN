@@ -1,6 +1,6 @@
 /*
 run 'npm install' to get dependencies.
-To run dev server, make sure to be in the webrtc-application folder, and run 'npm run dev'.
+'npm run dev'
 */
 
 
@@ -31,13 +31,11 @@ const config = {
   ],
 };
 
-// Global State
 let peerConnection = new RTCPeerConnection(config);
 let dataChannel = peerConnection.createDataChannel('datachannel');
 let localStream = null;
 let remoteStream = null;
 let displayMediaStream = null;
-
 let senders = [];
 
 // HTML elements
@@ -70,7 +68,6 @@ backButton.addEventListener("click", () => {
 backButton2.addEventListener("click", () => {
   goBack();
 })
-
 
 let goBack = () => {
   if(modalContent3.style.display == "block"){
@@ -111,8 +108,7 @@ dataChannel.addEventListener('message', event => {
 })
 
 
-// 1. Setup media sources
-
+// Setting up media sources
 webcamButton.onclick = async () => {
   localStream = await navigator.mediaDevices.getUserMedia({
     video: true,
@@ -120,13 +116,10 @@ webcamButton.onclick = async () => {
   });
   remoteStream = new MediaStream();
 
-
-  // Push tracks from local stream to peer connection
   localStream.getTracks().forEach((track) => {
     senders.push(peerConnection.addTrack(track, localStream));
   });
 
-  // Pull tracks from remote stream, add to video stream
   peerConnection.ontrack = (event) => {
     event.streams[0].getTracks().forEach((track) => {
       remoteStream.addTrack(track);
@@ -163,7 +156,7 @@ stopShareButton.addEventListener("click", async (event) => {
   stopShareButton.style.display = 'none';
 });
 
-// 2. Create an offer
+// Start a call and make offer
 callButton.onclick = async () => {
   // Reference Firestore collections for signaling
   const callDoc = firestore.collection("calls").doc();
@@ -172,11 +165,9 @@ callButton.onclick = async () => {
 
   invitationCode.value = callDoc.id;
 
-  // Get candidates for caller, save to db
   peerConnection.onicecandidate = (event) => {
     event.candidate && offerCandidates.add(event.candidate.toJSON());
   };
-
   
   // Create offer
   const offerDescription = await peerConnection.createOffer();
@@ -189,7 +180,6 @@ callButton.onclick = async () => {
   
   await callDoc.set({ offer });
 
-  // Listen for remote answer
   callDoc.onSnapshot((snapshot) => {
     const data = snapshot.data();
     if (!peerConnection.currentRemoteDescription && data?.answer) {
@@ -199,7 +189,6 @@ callButton.onclick = async () => {
     }
   });
 
-  // When answered, add candidate to peer connection
   answerCandidates.onSnapshot((snapshot) => {
     snapshot.docChanges().forEach((change) => {
       if (change.type === "added") {
@@ -210,21 +199,7 @@ callButton.onclick = async () => {
   });
 };
 
-// Refresh available calls
-refreshButton.onclick = async () => {
-  const callsRef = firestore.collection('calls');
-  const snapshot = await callsRef.get();
-  if (snapshot.empty) {
-    console.log('No matching calls');
-    return;
-  }
-
-  snapshot.forEach(doc => {
-    console.log(doc.id, '=>', doc.data().offer);
-  })
-}
-
-// 3. Answer the call with the unique ID
+// Answer call
 answerButton.onclick = async () => {
   const callId = callInput.value;
   const callDoc = firestore.collection("calls").doc(callId);
