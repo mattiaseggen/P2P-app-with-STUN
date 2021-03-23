@@ -5,4 +5,4 @@ RUN apt-get update && \
     apt-get -y install g++
 RUN g++ -o STUNServer src/STUNServer.cpp src/STUNOperations.cpp \
     src/STUNResponseBuilder.cpp src/STUNResponse.cpp -lpthread
-CMD ["nohup", "./STUNServer", "&"]
+CMD ["./STUNServer"]
