@@ -39,8 +39,5 @@ jobs:
           docker stop $(docker ps -a -q)
           docker rm $(docker ps -a -q)
           git pull origin main
-          cd STUN-server
-          make
-          nohup ./STUNServer &
-          sleep 4
+          git status
 
