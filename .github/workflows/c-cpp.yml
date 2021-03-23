@@ -41,6 +41,7 @@ jobs:
           git pull origin main
           git status
           cd STUN-server
-          make run &
+          docker-compose build stun-server
+	        docker-compose up &
           echo STUNServer updated and running
 
