@@ -39,5 +39,6 @@ jobs:
           docker stop $(docker ps -a -q)
           docker rm $(docker ps -a -q)
           git pull origin main
-          git status
-
+          cd STUN-server
+          docker-compose build stun-server
+          nohup docker-compose up 1>/dev/null 2>/dev/null &
