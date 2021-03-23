@@ -44,4 +44,5 @@ jobs:
           docker-compose build stun-server
           nohup docker-compose up &
           sleep 6
+          exit
 
