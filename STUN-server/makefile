@@ -16,16 +16,12 @@ STUNResponse.o: $(SRC)STUNResponse.cpp
 STUNResponseBuilder.o: $(SRC)STUNResponseBuilder.cpp
 	g++ -c $(SRC)STUNResponseBuilder.cpp
 
-
-make test: test.o STUNOperations.o STUNResponse.o STUNResponseBuilder.o
-	g++ test.o STUNOperations.o STUNResponse.o STUNResponseBuilder.o -o TestProgram
-
-test.o: $(TEST)test.cpp
-	g++ -c $(TEST)test.cpp
-
+test: 
+	docker build -t stun-test -f tests/Dockerfile .
+	docker run --rm stun-test
 
 clean:
-	rm *.o STUNServer TestProgram
+	rm *.o STUNServer STUN-test
 
 run:
 	docker-compose build stun-server
