@@ -42,4 +42,5 @@ jobs:
           git status
           cd STUN-server
           docker-compose build stun-server
-          nohup docker-compose up
+          nohup bash -c "docker-compose up 2>&1 &" && sleep 5
+          exit
