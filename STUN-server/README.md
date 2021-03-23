@@ -13,7 +13,11 @@ The first goal was to get a simple UDP server up and running that could recieve 
 
 The STUN-server is a UDP server that uses a Worker class that creates worker threads which handles every package that is recieved. Everytime the ```recvfrom(...)``` function recieves a STUN message, the processing and response of the message is posted as a task for the worker threads to handle.
 
-The first, and most important, functionality that is implemented is **recieving STUN binding request and returning the port and IPv4 address in a STUN success response**. Other methods
+The most important functionality that is implemented is **recieving STUN binding request and returning the port and IPv4 address in a STUN success response**. 
+
+We also have several methods in the ```STUNOperations.cpp``` which validates the STUN message:
+1. 
+
 
 ## Future development
 
@@ -21,8 +25,7 @@ The first, and most important, functionality that is implemented is **recieving 
 
 We use **CMake** which is used for build automation, testing, including packages and installation of software. We have used it to compile our code as well as run tests and the program itself.
 
-DOCker????
-
+We also use **docker** to run the tests and the STUN server itself. This is to make sure the PC running the STUN server does not run into any problems because of the OS.
 
 
 ## Installation Guide
@@ -37,10 +40,13 @@ This is an installation guide that gives instructions on how to set up the STUN-
 
 #### How to start STUN-server
 
-1. 
+There are two ways of starting the STUN server. The server is running when you get an output: ```Server is running. Waiting for STUN requests...```
 
+1. Write ```make``` and then ```./STUNServer```. This will run the STUN server directly on your computer.
+2. The other way is to simply write ```make run``` which will build the docker image and run it. The docker image will install all necessary dependencies, compile all necessary files, and run the server! To exit the docker and stop the server press ```CTRL + c``` **two** times.
 
+## How to run tests
 
-## How run tests
+To run the test, make sure you are in the **STUN-server** folder in the project and write ```make test```
 
 ## API Documentation
