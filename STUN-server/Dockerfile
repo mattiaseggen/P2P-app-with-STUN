@@ -6,4 +6,3 @@ RUN apt-get update && \
 RUN g++ -o STUNServer src/STUNServer.cpp src/STUNOperations.cpp \
     src/STUNResponseBuilder.cpp src/STUNResponse.cpp -lpthread
 CMD ["nohup","./STUNServer", "&"]
-CMD ["exit"]
