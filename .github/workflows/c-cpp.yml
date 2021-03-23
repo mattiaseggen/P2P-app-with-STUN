@@ -22,3 +22,19 @@ jobs:
     - uses: actions/checkout@v2
     - name: change directory and make test
       run: cd STUN-server && make test && ./TestProgram
+
+  deploy_STUN_server:
+    name: deploy_STUN_server
+    runs-on: ubuntu-latest
+    steps:
+    - name: testing STUNserver ssh connection
+      uses: appleboy/ssh-action@master
+      with: 
+        host: 13.74.199.118
+        username: azureuser
+        key: ${{ secrets.STUN_SECRET }}
+        port: 22
+        script: | 
+          cd frivillig-prosjekt
+          git pull origin master
+          git status

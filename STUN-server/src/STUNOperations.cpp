@@ -100,12 +100,12 @@ int validTransactionID(std::array<char, MAXLINE> &input)
         return 0;
     }
 }
-// CHECK LEAST SIGNIFICANT BITS IN LENGTH
+
 int validMessageLength(std::array<char, MAXLINE> &input)
 {
     typedef unsigned char u8;
     unsigned length = ((u8)input[2] << 8) | (u8)input[3];
-    if (length >= 0 || length <= (MAXLINE - 20))
+    if ((length >= 0 || length <= (MAXLINE - 20)) && (input[3] & 3) == 0)
     { // -20 because the the STUN header is 20 bytes long
         return 1;
     }

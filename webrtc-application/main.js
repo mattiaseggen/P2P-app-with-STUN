@@ -26,7 +26,7 @@ const firestore = firebase.firestore();
 const config = {
   iceServers: [
     {
-      urls: ["stun:stun1.l.google.com:19302"],
+      urls: ["stun:13.74.199.118:3478"],
     },
   ],
 };
@@ -60,6 +60,27 @@ const modalContent4 = document.getElementById("modalCnt4");
 const sendMessageButton = document.getElementById("sendMessageButton");
 let dataChannelSend = document.getElementById("dataChannelSend");
 let messageBox = document.getElementById("messageBox");
+const backButton = document.getElementById("backButton");
+const backButton2 = document.getElementById("backButton2");
+
+
+backButton.addEventListener("click", () => {
+  goBack();
+})
+backButton2.addEventListener("click", () => {
+  goBack();
+})
+
+
+let goBack = () => {
+  if(modalContent3.style.display == "block"){
+    modalContent3.style.display = "none";
+  }
+  if(modalContent4.style.display == "block"){
+    modalContent4.style.display = "none";
+  }
+  modalContent2.style.display = "block";
+}
 
 joinButton.addEventListener("click", () => {
   console.log("join button clicked");
