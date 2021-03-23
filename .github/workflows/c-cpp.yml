@@ -35,6 +35,6 @@ jobs:
         key: ${{ secrets.STUN_SECRET }}
         port: 22
         script: | 
-          cd frivillig-prosjekt
+          cd P2P-app-with-STUN
           git pull origin master
           git status
