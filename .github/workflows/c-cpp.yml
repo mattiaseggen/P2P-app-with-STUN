@@ -44,3 +44,4 @@ jobs:
           docker-compose build stun-server
           docker-compose up & disown
           sleep 7
+          exit
