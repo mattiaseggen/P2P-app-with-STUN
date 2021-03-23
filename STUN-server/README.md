@@ -1,7 +1,7 @@
 # STUN server
 
 STUN-server name: **13.74.199.118:3478**
-Link to "siste continous integration"????????????
+Link to last continous integration/deployment: [temporary](https://github.com/mattiaseggen/P2P-app-with-STUN/actions/runs/681011190)
 
 ## Introduction
 
