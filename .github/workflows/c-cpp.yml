@@ -36,5 +36,5 @@ jobs:
         port: 22
         script: | 
           cd P2P-app-with-STUN
-          git pull origin master
+          git pull origin main
           git status
