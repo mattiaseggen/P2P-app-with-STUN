@@ -107,7 +107,7 @@ dataChannel.addEventListener('message', event => {
 webcamButton.onclick = async () => {
   localStream = await navigator.mediaDevices.getUserMedia({
     video: true,
-    audio: false,
+    audio: true,
   });
   remoteStream = new MediaStream();
 
