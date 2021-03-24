@@ -25,8 +25,7 @@ int main()
         (char)0x28, (char)0x6F, (char)0x1F, (char)0x80
     };
     struct sockaddr_in servaddr;
-  
-    int n, len;
+      int n, len;
     // Creating socket file descriptor
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("socket creation failed");

@@ -139,6 +139,9 @@ public:
                     int responseSize;
 
                     handleSTUNMessage(bufferCopy, response, &responseSize, clientAddress);
+                    for(int i = 0; i < 32; i ++){
+                            std::cout << (int)response[i] << std::endl;
+                    }
                     sendto(this->udpfd, (const char *)response, responseSize, MSG_CONFIRM, (const struct sockaddr*)&clientAddress, len);
                 });
             }            
