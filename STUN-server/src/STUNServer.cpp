@@ -105,14 +105,15 @@ public:
                 std::cout << "Bytes read: " << bytes_read << std::endl;
                 std::copy(std::begin(buffer), std::end(buffer), std::begin(bufferCopy));
 
+                for(int i = 0; i < 32; i ++){
+                    std::cout << (int)buffer[i] << std::endl;
+                }
+
                 worker_threads.post([this, bufferCopy, clientAddress, len]{
                     char response[MAXLINE];
                     int responseSize;
 
                     handleSTUNMessage(bufferCopy, response, &responseSize, clientAddress);
-                    for(int i = 0; i < 32; i ++){
-                            std::cout << (int)response[i] << std::endl;
-                    }
                     write(this->connfd, (const char*)response, responseSize);
                     close(this->connfd);
                 });
