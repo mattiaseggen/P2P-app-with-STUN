@@ -99,7 +99,6 @@ public:
                 len = sizeof(clientAddress);
                 connfd = accept(listenfd, (struct sockaddr*)&clientAddress, &len);
 
-                if((childpid = fork()) == 0){
                     close(listenfd);
                     memset(buffer, 0, MAXLINE);
                     bytes_read = read(connfd, buffer, sizeof(buffer));
@@ -118,9 +117,7 @@ public:
                         //sendto(this->udpfd, (const char *)response, responseSize, MSG_CONFIRM, (const struct sockaddr *)&clientAddress, len);
                     });
                     close(connfd);
-                    exit(0);
-                }
-                close(connfd);
+
 
                 char str[INET_ADDRSTRLEN];
                 inet_ntop(AF_INET, &clientAddress.sin_addr, str, INET_ADDRSTRLEN);
