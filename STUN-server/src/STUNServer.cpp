@@ -103,7 +103,7 @@ public:
                     close(listenfd);
                     memset(buffer, 0, MAXLINE);
                     bytes_read = read(connfd, buffer, sizeof(buffer));
-                    std::cout << "Bytes read: " << std::endl;
+                    std::cout << "Bytes read: " << bytes_read << std::endl;
                     std::copy(std::begin(buffer), std::end(buffer), std::begin(bufferCopy));
 
                     worker_threads.post([this, bufferCopy, clientAddress, len]{
@@ -111,6 +111,9 @@ public:
                         int responseSize;
 
                         handleSTUNMessage(bufferCopy, response, &responseSize, clientAddress);
+                        for(int i = 0; i < 32; i ++){
+                            std::cout << (int)response[i] << std::endl;
+                        }
                         write(connfd, (const char*)response, responseSize);
                         //sendto(this->udpfd, (const char *)response, responseSize, MSG_CONFIRM, (const struct sockaddr *)&clientAddress, len);
                     });
