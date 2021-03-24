@@ -102,7 +102,6 @@ public:
                     close(listenfd);
                     memset(buffer, 0, MAXLINE);
                     bytes_read = read(connfd, buffer, sizeof(buffer));
-                    std::cout << "Bytes read: " << bytes_read << std::endl;
                     std::copy(std::begin(buffer), std::end(buffer), std::begin(bufferCopy));
 
                     char response[MAXLINE];
