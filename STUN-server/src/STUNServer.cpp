@@ -11,8 +11,6 @@
 #define PORT 3478    
 #define MAXLINE 1024 
 
-// TODO: make this one run with threads and put it in a while loop
-// TODO: try to make ipv6 work as well
 
 class STUNServer
 {
@@ -99,6 +97,7 @@ public:
                 len = sizeof(clientAddress);
                 connfd = accept(listenfd, (struct sockaddr*)&clientAddress, &len);
 
+                // Creates a fork and makes sure the process id is the child
                 if((childpid = fork()) == 0){
                     close(listenfd);
                     memset(buffer, 0, MAXLINE);
@@ -106,23 +105,15 @@ public:
                     std::cout << "Bytes read: " << bytes_read << std::endl;
                     std::copy(std::begin(buffer), std::end(buffer), std::begin(bufferCopy));
 
-                        char response[MAXLINE];
-                        int responseSize;
+                    char response[MAXLINE];
+                    int responseSize;
 
-                        handleSTUNMessage(bufferCopy, response, &responseSize, clientAddress);
-                        for(int i = 0; i < 32; i ++){
-                            std::cout << (int)response[i] << std::endl;
-                        }
-                        write(connfd, (const char*)response, responseSize);
-                        //sendto(this->udpfd, (const char *)response, responseSize, MSG_CONFIRM, (const struct sockaddr *)&clientAddress, len);
+                    handleSTUNMessage(bufferCopy, response, &responseSize, clientAddress);
+                    write(connfd, (const char*)response, responseSize);
                     close(connfd);
                     exit(0);
                 }
                 close(connfd);
-
-                char str[INET_ADDRSTRLEN];
-                inet_ntop(AF_INET, &clientAddress.sin_addr, str, INET_ADDRSTRLEN);
-                std::cout << str << std::endl;
             }
             
             if(FD_ISSET(udpfd, &rset)){
