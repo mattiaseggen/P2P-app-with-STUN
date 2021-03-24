@@ -1,10 +1,12 @@
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <iostream>
 #include <string.h>
 #include "../inc/STUNOperations.hpp"
 #include "Workers.cpp"
+
 
 #define PORT 3478    
 #define MAXLINE 1024 
@@ -16,34 +18,56 @@ class STUNServer
 {
 private:
     // Socket file descriptor
-    int socketfd;
+    int udpfd, listenfd, connfd, nready, maxfdp1;
     char buffer[MAXLINE];
+    pid_t childpid;
+    fd_set rset;
+    const int on = 1;
     struct sockaddr_in serverAddress;
+    void sig_chld(int);
 
 public:
     STUNServer()
     {
-        // Creating server socket
-        socketfd = socket(AF_INET, SOCK_DGRAM, 0);
-        if (socketfd < 0)
+        // Create listening TCP socket
+        listenfd = socket(AF_INET, SOCK_STREAM, 0);
+        if (listenfd < 0)
         {
             perror("Socket creation failed.");
             exit(EXIT_FAILURE);
         }
-
-        memset(&serverAddress, 0, sizeof(serverAddress));
+        bzero(&serverAddress, sizeof(serverAddress));
 
         // Configuring the server:
-        serverAddress.sin_family = AF_INET; //IPv4
-        serverAddress.sin_addr.s_addr = INADDR_ANY;
+        serverAddress.sin_family = AF_INET;
+        serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
         serverAddress.sin_port = htons(PORT);
 
+        // binding server address struct to listenfd(tcp)
+        if (bind(listenfd, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0)
+        {
+            perror("Failed to bind tcp socket and server address");
+            exit(EXIT_FAILURE);
+        }
+        listen(listenfd, 10);
+
+        // Creating udp server socket
+        udpfd = socket(AF_INET, SOCK_DGRAM, 0);
+        if (udpfd < 0)
+        {
+            perror("Socket creation failed.");
+            exit(EXIT_FAILURE);
+        }
         // Bind the socket with the server address
-        if (bind(socketfd, (const struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
+        if (bind(udpfd, (const struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
         {
             perror("Failed to bind socket and server address");
             exit(EXIT_FAILURE);
         }
+
+        FD_ZERO(&rset);
+
+        maxfdp1 = max(listenfd, udpfd) + 1;
     }
 
     void run()
@@ -65,19 +89,54 @@ public:
         std::array<char, MAXLINE> bufferCopy;
 
         while(!stop){
-            memset(buffer, 0, MAXLINE);
-            bytes_read = recvfrom(socketfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *)&clientAddress, &len);
-            buffer[bytes_read] = '\0';
+
+            FD_SET(listenfd, &rset);
+            FD_SET(udpfd, &rset);
+
+            nready = select(maxfdp1, &rset, NULL, NULL, NULL);
+
+            if(FD_ISSET(listenfd, &rset)){
+                len = sizeof(clientAddress);
+                connfd = accept(listenfd, (struct sockaddr*)&clientAddress, &len);
+
+                if((childpid = fork()) == 0){
+                    close(listenfd);
+                    memset(buffer, 0, MAXLINE);
+                    bytes_read = read(connfd, buffer, sizeof(buffer));
+                    std::cout << "Bytes read: " << std::endl;
+                    std::copy(std::begin(buffer), std::end(buffer), std::begin(bufferCopy));
+
+                    worker_threads.post([this, bufferCopy, clientAddress, len]{
+                        char response[MAXLINE];
+                        int responseSize;
+
+                        handleSTUNMessage(bufferCopy, response, &responseSize, clientAddress);
+                        write(connfd, (const char*)response, responseSize);
+                        //sendto(this->udpfd, (const char *)response, responseSize, MSG_CONFIRM, (const struct sockaddr *)&clientAddress, len);
+                    });
+                    close(connfd);
+                    exit(0);
+                }
+                close(connfd);
+            }
             
-            std::copy(std::begin(buffer), std::end(buffer), std::begin(bufferCopy));
+            if(FD_ISSET(udpfd, &rset)){
+                len = sizeof(clientAddress);
+                memset(buffer, 0, MAXLINE);
+                bytes_read = recvfrom(udpfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr*)&clientAddress, &len);
 
-            worker_threads.post([this, bufferCopy, clientAddress, len]{
-                char response[MAXLINE];
-                int responseSize;
+                buffer[bytes_read] = '\0';
+            
+                std::copy(std::begin(buffer), std::end(buffer), std::begin(bufferCopy));
 
-                handleSTUNMessage(bufferCopy, response, &responseSize, clientAddress);
-                sendto(this->socketfd, (const char *)response, responseSize, MSG_CONFIRM, (const struct sockaddr *)&clientAddress, len);
-            });
+                worker_threads.post([this, bufferCopy, clientAddress, len]{
+                    char response[MAXLINE];
+                    int responseSize;
+
+                    handleSTUNMessage(bufferCopy, response, &responseSize, clientAddress);
+                    sendto(this->udpfd, (const char *)response, responseSize, MSG_CONFIRM, (const struct sockaddr*)&clientAddress, len);
+                });
+            }            
         }
 
         worker_threads.stop();
