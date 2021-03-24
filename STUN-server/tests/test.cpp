@@ -13,9 +13,16 @@ int main()
     };
 
     testIsStunMessage(testInput1);
+    std::cout << "Test 1 passed!" << std::endl;
+
     testContainsMagicCookie(testInput1);
+    std::cout << "Test 2 passed!" << std::endl;
+
     testValidTransactionID(testInput1);
+    std::cout << "Test 3 passed!" << std::endl;
+
     testValidMessageLength(testInput1);
+    std::cout << "Test 4 passed!" << std::endl;
 
 
 

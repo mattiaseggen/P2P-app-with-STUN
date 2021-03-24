@@ -18,8 +18,6 @@ struct Error {
 */
 void handleSTUNMessage(std::array<char, 1024> inputBuffer, char *responeBuffer, int *responseSize, struct sockaddr_in clientAddress);
 
-
-// TODO Add descriptions to these like above
 int isStunMessage(unsigned char byte);
 int containsMagicCookie(std::array<char, 1024> &input);
 int validTransactionID(std::array<char, 1024> &input);

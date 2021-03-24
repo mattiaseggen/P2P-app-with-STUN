@@ -15,13 +15,12 @@
 class STUNServer
 {
 private:
-    // Socket file descriptor
+    // file descriptors
     int udpfd, listenfd, connfd, nready, maxfdp1;
     char buffer[MAXLINE];
-    pid_t childpid;
-    fd_set rset;
-    const int on = 1;
-    struct sockaddr_in serverAddress;
+    pid_t childpid;  // Contains the process id
+    fd_set rset; // Represents the file descriptor sets for the select function
+    struct sockaddr_in serverAddress;  // Server address containing information about the server
     void sig_chld(int);
 
 public:
@@ -34,7 +33,7 @@ public:
             perror("Socket creation failed.");
             exit(EXIT_FAILURE);
         }
-        bzero(&serverAddress, sizeof(serverAddress));
+        memset(&serverAddress, 0, sizeof(serverAddress));
 
         // Configuring the server:
         serverAddress.sin_family = AF_INET;
@@ -63,24 +62,27 @@ public:
             exit(EXIT_FAILURE);
         }
 
-        FD_ZERO(&rset);
+        FD_ZERO(&rset); // Clears the file descriptor set
 
-        maxfdp1 = max(listenfd, udpfd) + 1;
+        maxfdp1 = max(listenfd, udpfd) + 1; // Finds the max amount of file descriptors
     }
 
     void run()
     {
+        // NB! A way to actually stop the server correctly is still to be implemented
         std::atomic_bool stop(false);
         
         std::cout << "Server is running. Waiting for STUN requests..." << std::endl;
         int bytes_read;
 
+        // Creates a worker class with 12 threads, can be adjusted to as many threads as we want
         Workers worker_threads(12);
-        worker_threads.start();
+        worker_threads.start(); // Start the worker threads so they are waiting for tasks to be posted
 
+        // Address information like IPv4-address and port will be stored in this variable
         struct sockaddr_in clientAddress;
         memset(&clientAddress, 0, sizeof(clientAddress));
-        socklen_t len = sizeof(clientAddress); //Length of clientaddres
+        socklen_t len = sizeof(clientAddress); // Size of clientaddres struct
         
         // Creating a array that can will be a copy of the buffer since regular arrays
         // can't be sent as copies, which is necessary when using thread.
@@ -93,6 +95,7 @@ public:
 
             nready = select(maxfdp1, &rset, NULL, NULL, NULL);
 
+            // Listens for TCP packages
             if(FD_ISSET(listenfd, &rset)){
                 len = sizeof(clientAddress);
                 connfd = accept(listenfd, (struct sockaddr*)&clientAddress, &len);
@@ -115,6 +118,7 @@ public:
                 close(connfd);
             }
             
+            // Listens for UDP package
             if(FD_ISSET(udpfd, &rset)){
                 len = sizeof(clientAddress);
                 memset(buffer, 0, MAXLINE);
@@ -134,6 +138,7 @@ public:
             }            
         }
 
+        // Stop working threads
         worker_threads.stop();
         std::cout << "Server stopped" << std::endl;
     }
@@ -141,7 +146,7 @@ public:
 
 int main()
 {
-    
+    // Create and start server
     STUNServer server;
     server.run();
 

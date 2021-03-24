@@ -22,6 +22,3 @@ void testValidMessageLength(std::array<char, 1024> &testInput){
     assert(result == 1);
 }
 
-
-// TODO: make better/more tests
-
