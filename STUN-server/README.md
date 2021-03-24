@@ -12,7 +12,7 @@ The first goal was to get a simple UDP server up and running that could recieve 
 
 ## Implemented functionality
 
-The STUN-server is a UDP/TCP server that listens to both UDP and TCP requests. When a UDP package or TCP package is recieved, the package and response is handled in a worker thread when it is a UDP package, and a child process when it is a TCP package.
+The STUN-server is a UDP/TCP server that listens to both UDP and TCP requests. When a UDP package or TCP package is recieved, the package and response is handled in a worker thread when it is a UDP package, and a child process when it is a TCP package. The Worker class that we are using is a class we made in a previous obligatory assignment in this subject.
 
 The most important functionality that is implemented is **recieving STUN binding request and returning the port and IPv4 address in a STUN success response**. 
 
