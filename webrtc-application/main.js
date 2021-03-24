@@ -1,8 +1,3 @@
-/*
-run 'npm install' to get dependencies.
-'npm run dev'
-*/
-
 import "./style.css";
 import firebase from "firebase/app";
 import "firebase/firestore";
@@ -145,6 +140,7 @@ shareButton.addEventListener("click", async () => {
   webcamVideo.srcObject = displayMediaStream;
 
   shareButton.style.display = "none";
+  stopShareButton.style.display = "inline";
   stopShareButton.style.display = "inline";
 });
 
