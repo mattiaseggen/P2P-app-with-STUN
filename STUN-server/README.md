@@ -70,12 +70,12 @@ This is an installation guide that gives instructions on how to set up the STUN-
 #### Clone the project
 
 1. Clone this git repository [P2P-app-with-STUN](https://github.com/mattiaseggen/P2P-app-with-STUN)
-2. CD into the project folder and then the "STUN-server".
+2. CD into the project folder, followed by "STUN-server".
 3. Now you can proceed to the next section.
 
-#### How to start STUN-server
+#### How to start the STUN-server
 
-There are two ways of starting the STUN server. The server is running when you get an output: ```Server is running. Waiting for STUN requests...```
+There are two ways to start the STUN server. The server is running when you get an output: ```Server is running. Waiting for STUN requests...```
 
 1. Write ```make``` and then ```./STUNServer```. This will run the STUN server directly on your computer.
 2. The other way is to simply write ```make run``` which will build the docker image and run it. The docker image will install all necessary dependencies, compile all necessary files, and run the server! To exit the docker and stop the server press ```CTRL + c``` **two** times.
