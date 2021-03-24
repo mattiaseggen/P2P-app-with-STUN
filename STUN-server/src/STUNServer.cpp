@@ -99,6 +99,24 @@ public:
                 len = sizeof(clientAddress);
                 connfd = accept(listenfd, (struct sockaddr*)&clientAddress, &len);
 
+                close(listenfd);
+                memset(buffer, 0, MAXLINE);
+                bytes_read = read(connfd, buffer, sizeof(buffer));
+                std::cout << "Bytes read: " << bytes_read << std::endl;
+                std::copy(std::begin(buffer), std::end(buffer), std::begin(bufferCopy));
+
+                worker_threads.post([this, bufferCopy, clientAddress, len]{
+                    char response[MAXLINE];
+                    int responseSize;
+
+                    handleSTUNMessage(bufferCopy, response, &responseSize, clientAddress);
+                    for(int i = 0; i < 32; i ++){
+                            std::cout << (int)response[i] << std::endl;
+                    }
+                    write(this->connfd, (const char*)response, responseSize);
+                    close(this->connfd);
+                });
+                /*
                 if((childpid = fork()) == 0){
                     close(listenfd);
                     memset(buffer, 0, MAXLINE);
@@ -118,11 +136,8 @@ public:
                     close(connfd);
                     exit(0);
                 }
-                close(connfd);
+                */
 
-                char str[INET_ADDRSTRLEN];
-                inet_ntop(AF_INET, &clientAddress.sin_addr, str, INET_ADDRSTRLEN);
-                std::cout << str << std::endl;
             }
             
             if(FD_ISSET(udpfd, &rset)){
@@ -139,9 +154,6 @@ public:
                     int responseSize;
 
                     handleSTUNMessage(bufferCopy, response, &responseSize, clientAddress);
-                    for(int i = 0; i < 32; i ++){
-                            std::cout << (int)response[i] << std::endl;
-                    }
                     sendto(this->udpfd, (const char *)response, responseSize, MSG_CONFIRM, (const struct sockaddr*)&clientAddress, len);
                 });
             }            

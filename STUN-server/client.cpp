@@ -49,7 +49,7 @@ int main()
 
     printf("Message from server: ");
     read(sockfd, buffer, 1024);
-    for(int i = 0; i < 1024; i ++){
+    for(int i = 0; i < 32; i ++){
         std::cout << (int)buffer[i] << std::endl;
     }
     close(sockfd);
