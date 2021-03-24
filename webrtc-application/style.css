@@ -12,6 +12,7 @@ video {
   height: 30vw;
   margin: 2rem;
   background: #293249;
+  border: 1px solid #000000;
 }
 
 .videos {
