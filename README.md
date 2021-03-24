@@ -13,4 +13,4 @@ Make sure current directory is webrtc-application
 npm install
 npm run dev
 ```
-Optionally, use link provided by Netlify 
+Optionally, use link provided by [Netlify](https://musing-perlman-c6795b.netlify.app/)
