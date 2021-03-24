@@ -121,6 +121,10 @@ public:
                     exit(0);
                 }
                 close(connfd);
+
+                char str[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, &clientAddress.sin_addr, str, INET_ADDRSTRLEN);
+                std::cout << str << std::endl;
             }
             
             if(FD_ISSET(udpfd, &rset)){
