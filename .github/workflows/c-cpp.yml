@@ -27,7 +27,7 @@ jobs:
     name: deploy_STUN_server
     runs-on: ubuntu-latest
     steps:
-    - name: testing STUNserver ssh connection
+    - name: deploying STUN-Server to VM
       uses: appleboy/ssh-action@master
       with: 
         host: 13.74.199.118
