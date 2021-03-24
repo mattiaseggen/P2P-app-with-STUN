@@ -1,13 +1,9 @@
-/*
-run 'npm install' to get dependencies.
-'npm run dev'
-*/
-
-
 import "./style.css";
 import firebase from "firebase/app";
 import "firebase/firestore";
 
+
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyDzYow_vM7DhBFlq9JyAIvzLcvYkb5X9qE",
   authDomain: "fir-rtc-523e4.firebaseapp.com",
@@ -39,27 +35,26 @@ let displayMediaStream = null;
 let senders = [];
 
 // HTML elements
-const webcamButton = document.getElementById("webcamButton");
-const webcamVideo = document.getElementById("webcamVideo");
-const callButton = document.getElementById("callButton");
-const invitationCode = document.getElementById("invitationCode");
-const answerButton = document.getElementById("answerButton");
-const remoteVideo = document.getElementById("remoteVideo");
-const refreshButton = document.getElementById('refreshButton');
-const shareButton = document.getElementById("share-button");
-const stopShareButton = document.getElementById("stop-share-button");
-const joinButton = document.getElementById("joinButton");
-const hostButton = document.getElementById("hostButton");
-const modal = document.getElementById("myModal");
-const modalContent1 = document.getElementById("modalCnt1");
-const modalContent2 = document.getElementById("modalCnt2");
-const modalContent3 = document.getElementById("modalCnt3");
-const modalContent4 = document.getElementById("modalCnt4");
-const sendMessageButton = document.getElementById("sendMessageButton");
+let webcamButton = document.getElementById("webcamButton");
+let webcamVideo = document.getElementById("webcamVideo");
+let callButton = document.getElementById("callButton");
+let invitationCode = document.getElementById("invitationCode");
+let answerButton = document.getElementById("answerButton");
+let remoteVideo = document.getElementById("remoteVideo");
+let shareButton = document.getElementById("share-button");
+let stopShareButton = document.getElementById("stop-share-button");
+let joinButton = document.getElementById("joinButton");
+let hostButton = document.getElementById("hostButton");
+let modal = document.getElementById("myModal");
+let modalContent1 = document.getElementById("modalCnt1");
+let modalContent2 = document.getElementById("modalCnt2");
+let modalContent3 = document.getElementById("modalCnt3");
+let modalContent4 = document.getElementById("modalCnt4");
+let sendMessageButton = document.getElementById("sendMessageButton");
+let backButton = document.getElementById("backButton");
+let backButton2 = document.getElementById("backButton2");
 let dataChannelSend = document.getElementById("dataChannelSend");
 let messageBox = document.getElementById("messageBox");
-const backButton = document.getElementById("backButton");
-const backButton2 = document.getElementById("backButton2");
 
 
 backButton.addEventListener("click", () => {
@@ -145,6 +140,7 @@ shareButton.addEventListener("click", async () => {
   webcamVideo.srcObject = displayMediaStream;
 
   shareButton.style.display = "none";
+  stopShareButton.style.display = "inline";
   stopShareButton.style.display = "inline";
 });
 

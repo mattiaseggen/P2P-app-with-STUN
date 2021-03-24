@@ -21,14 +21,37 @@ video {
 }
 
 .chatArea {
- display: flex; 
- flex-direction: column;
- width: 30%;
- margin: 10px auto;
+  display: flex; 
+  flex-direction: column;
+  width: 30%;
+  margin: 10px auto;
+}
+
+.chatObject {
+  margin-bottom: 5px;
+  padding: 0.8rem 1rem;
+  border-radius: 15px;
+}
+
+
+.sendContainer {
+  display: flex;
+  flex-direction: row;
+}
+
+#dataChannelSend {
+  width: 75%;
+  margin: 0.5rem;
 }
 
 #sendMessageButton {
   background-color: #5dc4ff;
+  width: 50%;
+  margin: 0.5rem;
+}
+
+.buttons {
+  margin-top: 30px;
 }
 
 /* The Modal (background) */
