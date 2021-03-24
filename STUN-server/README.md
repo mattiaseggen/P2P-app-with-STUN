@@ -1,7 +1,7 @@
 # STUN server
 
 STUN-server name: **13.74.199.118:3478**
-Link to last continous integration/deployment: [temporary](https://github.com/mattiaseggen/P2P-app-with-STUN/actions/runs/681011190)
+Link to last continous integration/deployment:https://github.com/mattiaseggen/P2P-app-with-STUN/runs/2186363663?check_suite_focus=true
 
 ## Introduction
 
@@ -65,7 +65,7 @@ The last external dependancy we use is **docker compose** which is a tool for de
 
 ## Installation Guide
 
-This is an installation guide that gives instructions on how to set up the STUN-server.
+This is an installation guide that gives instructions on how to set up the STUN-server. Make sure you have CMake, docker, docker-compose and g++ installed.
 
 #### Clone the project
 
