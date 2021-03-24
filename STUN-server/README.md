@@ -11,7 +11,7 @@ The first goal was to get a simple UDP server up and running that could recieve 
 
 ## Implemented functionality
 
-The STUN-server is a UDP server that uses a Worker class that creates worker threads which handles every package that is recieved. Everytime the ```recvfrom(...)``` function recieves a STUN message, the processing and response of the message is posted as a task for the worker threads to handle.
+The STUN-server is a UDP/TCP server that uses a Worker class that creates worker threads which handles every package that is recieved. Everytime the ```recvfrom(...)``` function recieves a STUN message, the processing and response of the message is posted as a task for the worker threads to handle.
 
 The most important functionality that is implemented is **recieving STUN binding request and returning the port and IPv4 address in a STUN success response**. 
 
